@@ -2,7 +2,6 @@
 
 session_start();
 
-
 if (!isset($_GET['psw']) || $_GET['psw'] !== 'hGxKr297Ab') {
     http_response_code(403);
     exit('Access denied. Please provide the correct password.');
@@ -51,10 +50,6 @@ $mimeTypes = [
 $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
 $filename = basename($title) . '.' . $ext;
 
-header("Content-Type: $mime");
-header("Content-Disposition: attachment; filename=\"$filename\"");
-header("Content-Transfer-Encoding: binary");
-
 // Custom User-Agent
 $options = [
     "http" => [
@@ -63,6 +58,34 @@ $options = [
 ];
 $context = stream_context_create($options);
 
+// Try to get file size first using HEAD request
+$fileSize = 0;
+$headOptions = [
+    "http" => [
+        "method" => "HEAD",
+        "header" => "User-Agent: VLC/3.0.16 LibVLC/3.0.16\r\n"
+    ]
+];
+$headContext = stream_context_create($headOptions);
+
+// Suppress warnings for the HEAD request
+$headers = @get_headers($url, 1, $headContext);
+if ($headers && isset($headers['Content-Length'])) {
+    $fileSize = is_array($headers['Content-Length']) 
+        ? end($headers['Content-Length']) 
+        : $headers['Content-Length'];
+}
+
+// Set headers
+header("Content-Type: $mime");
+header("Content-Disposition: attachment; filename=\"$filename\"");
+header("Content-Transfer-Encoding: binary");
+
+// Set content length if we got it
+if ($fileSize > 0) {
+    header("Content-Length: $fileSize");
+}
+
 // Stream to browser
 $stream = @fopen($url, 'rb', false, $context);
 if ($stream === false) {
@@ -70,8 +93,14 @@ if ($stream === false) {
     exit('Could not load stream.');
 }
 
+// Stream file in chunks
 while (!feof($stream)) {
     echo fread($stream, 8192);
     flush();
+    
+    // Check if client disconnected
+    if (connection_aborted()) {
+        break;
+    }
 }
 fclose($stream);
