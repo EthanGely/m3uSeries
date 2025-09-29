@@ -696,60 +696,121 @@ unset($_GET['psw']);
         return;
       }
       
-      const resultsHTML = results.map(item => createItemCard(item)).join('');
-      contentArea.innerHTML = `<div class="results-grid">${resultsHTML}</div>`;
+        const resultsHTML = results.map(item => createItemCard(item)).join('');
+        contentArea.innerHTML = `<div class="results-grid">${resultsHTML}</div>`;
+        // After rendering, check for missing images and fetch from TMDB
+        results.forEach((item, idx) => {
+          const isMovie = item.type !== 'series';
+          const title = isMovie ? item.title : item.series_name;
+          const imgId = Array.from(document.querySelectorAll('.item-image img'))[idx]?.id;
+          if (!item.image && imgId) {
+            handleImageError(imgId, isMovie ? 'movie' : 'series', title, isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].season : null), isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].episode : null));
+          }
+        });
+    }
+
+    // Called on image error or missing image
+    async function handleImageError(imgId, type, title, season = null, episode = null) {
+      const imgElem = document.getElementById(imgId);
+      if (!imgElem) return;
+      // Try TMDB
+      const tmdbImg = await fetchTmdbImage(type, title, season, episode);
+      if (tmdbImg) {
+        imgElem.src = tmdbImg;
+        imgElem.onerror = function() {
+          imgElem.parentNode.innerHTML = `<div class='placeholder'><i class='fas fa-${type === 'movie' ? 'film' : 'tv'}'></i></div>`;
+        };
+      } else {
+        imgElem.parentNode.innerHTML = `<div class='placeholder'><i class='fas fa-${type === 'movie' ? 'film' : 'tv'}'></i></div>`;
+      }
+    }
+
+    // TMDB async image fetcher
+    async function fetchTmdbImage(type, title, season = null, episode = null) {
+      const apiKey = '61dac66f8f6aecb3498d73f244d18c91'; // <-- Replace with your TMDB API key
+      const baseUrl = 'https://api.themoviedb.org/3';
+      const imgBase = 'https://image.tmdb.org/t/p/w500';
+      let url = '';
+      if (type === 'series') {
+        url = `${baseUrl}/search/tv?api_key=${apiKey}&query=${encodeURIComponent(title)}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.results && data.results.length > 0) {
+          const show = data.results[0];
+          if (season && episode) {
+            const tvId = show.id;
+            const epUrl = `${baseUrl}/tv/${tvId}/season/${season}/episode/${episode}/images?api_key=${apiKey}`;
+            const epResp = await fetch(epUrl);
+            const epData = await epResp.json();
+            if (epData.stills && epData.stills.length > 0) {
+              return imgBase + epData.stills[0].file_path;
+            }
+          }
+          if (show.poster_path) {
+            return imgBase + show.poster_path;
+          }
+        }
+      } else {
+        url = `${baseUrl}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.results && data.results.length > 0 && data.results[0].poster_path) {
+          return imgBase + data.results[0].poster_path;
+        }
+      }
+      return null;
     }
 
     function createItemCard(item) {
-      const isMovie = item.type !== 'series';
-      const title = isMovie ? item.title : item.series_name;
-      const image = item.image || 'Noimage.png';
-      
-      let actionsHTML = '';
-      if (isMovie) {
-        actionsHTML = `
-          <a href="player.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
-             target="_blank" class="btn-action btn-play">
-            <i class="fas fa-play"></i>Play
-          </a>
-          <a href="download.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
-             target="_blank" class="btn-action btn-download">
-            <i class="fas fa-download"></i>Download
-          </a>
-          <button class="btn-action btn-favorite" onclick="toggleFavorite(${JSON.stringify(item).replace(/"/g, '&quot;')}, this, event)">
-            <i class="fas fa-heart"></i>
-          </button>
-        `;
-      } else {
-        actionsHTML = `
-          <a href="series_detail.php?series=${encodeURIComponent(item.series_name)}" 
-             class="btn-action btn-play">
-            <i class="fas fa-tv"></i>View Episodes
-          </a>
-          <button class="btn-action btn-favorite" onclick="toggleFavorite(${JSON.stringify(item).replace(/"/g, '&quot;')}, this, event)">
-            <i class="fas fa-heart"></i>
-          </button>
-        `;
-      }
-      
-      return `
-        <div class="item-card">
-          <div class="item-image">
-            ${image !== 'Noimage.png' ? 
-              `<img src="${image}" alt="${title}" onerror="this.parentNode.innerHTML='<div class=\\'placeholder\\'><i class=\\'fas fa-${isMovie ? 'film' : 'tv'}\\'></i></div>';">` :
-              `<div class="placeholder"><i class="fas fa-${isMovie ? 'film' : 'tv'}"></i></div>`
-            }
-          </div>
-          <div class="item-content">
-            <div class="item-type ${isMovie ? 'movie' : ''}">${isMovie ? 'Movie' : 'Series'}</div>
-            <div class="item-title">${title}</div>
-            <div class="item-category">${item.category || 'Unknown'}</div>
-            <div class="item-actions">
-              ${actionsHTML}
+        const isMovie = item.type !== 'series';
+        const title = isMovie ? item.title : item.series_name;
+        const image = item.image || null;
+        let actionsHTML = '';
+        if (isMovie) {
+          actionsHTML = `
+            <a href="player.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
+               target="_blank" class="btn-action btn-play">
+              <i class="fas fa-play"></i>Play
+            </a>
+            <a href="download.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
+               target="_blank" class="btn-action btn-download">
+              <i class="fas fa-download"></i>Download
+            </a>
+            <button class="btn-action btn-favorite" onclick="toggleFavorite(${JSON.stringify(item).replace(/\"/g, '&quot;')}, this, event)">
+              <i class="fas fa-heart"></i>
+            </button>
+          `;
+        } else {
+          actionsHTML = `
+            <a href="series_detail.php?series=${encodeURIComponent(item.series_name)}" 
+               class="btn-action btn-play">
+              <i class="fas fa-tv"></i>View Episodes
+            </a>
+            <button class="btn-action btn-favorite" onclick="toggleFavorite(${JSON.stringify(item).replace(/\"/g, '&quot;')}, this, event)">
+              <i class="fas fa-heart"></i>
+            </button>
+          `;
+        }
+        // Use a unique id for the image element
+        const imgId = 'img_' + Math.random().toString(36).substr(2, 9);
+        return `
+          <div class="item-card">
+            <div class="item-image">
+              ${image ? 
+                `<img id="${imgId}" src="${image}" alt="${title}" onerror="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', ${item.episodes && item.episodes[0] ? item.episodes[0].season : 'null'}, ${item.episodes && item.episodes[0] ? item.episodes[0].episode : 'null'}`})">` :
+                `<img id="${imgId}" src="Noimage.png" alt="${title}" onload="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', ${item.episodes && item.episodes[0] ? item.episodes[0].season : 'null'}, ${item.episodes && item.episodes[0] ? item.episodes[0].episode : 'null'}`})">`
+              }
+            </div>
+            <div class="item-content">
+              <div class="item-type ${isMovie ? 'movie' : ''}">${isMovie ? 'Movie' : 'Series'}</div>
+              <div class="item-title">${title}</div>
+              <div class="item-category">${item.category || 'Unknown'}</div>
+              <div class="item-actions">
+                ${actionsHTML}
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
     }
 
     function toggleFavorite(item, button, event) {

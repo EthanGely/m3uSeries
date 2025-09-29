@@ -20,7 +20,7 @@ function isTVChannel($extinf, $title) {
     if (preg_match('/tvg-name="([^"]+)"/i', $extinf, $matches)) {
         $tvgName = trim($matches[1]);
         if (!empty($tvgName) && (stripos($tvgName, '|') !== false || stripos($tvgName, 'TV') !== false)) {
-            return true;
+            return false;
         }
     }
     
@@ -28,7 +28,7 @@ function isTVChannel($extinf, $title) {
     if (preg_match('/group-title="([^"]+)"/i', $extinf, $matches)) {
         $groupTitle = trim($matches[1]);
         if (stripos($groupTitle, 'TV') !== false) {
-            return true;
+            return false;
         }
     }
     

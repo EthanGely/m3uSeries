@@ -33,21 +33,23 @@ if ($cachedFile && file_exists($cachedFile)) {
             } elseif ($title && filter_var($line, FILTER_VALIDATE_URL)) {
                 // Parse series info
                 if (preg_match('/^(.+?)\s*\([^)]*\)\s*(?:FHD|HD|SD)?\s*S(\d+)\s*E(\d+)$/i', $title, $matches)) {
-                    $currentSeriesName = trim($matches[1]);
-                    if (strcasecmp($currentSeriesName, $seriesName) === 0) {
-                        $tvgLogo = null;
-                        if (preg_match('/tvg-logo="([^"]+)"/i', $extinf, $logoMatches)) {
-                            $tvgLogo = $logoMatches[1];
+                        $currentSeriesName = trim($matches[1]);
+                        $seasonNum = (int)$matches[2];
+                        $episodeNum = (int)$matches[3];
+                        if (strcasecmp($currentSeriesName, $seriesName) === 0) {
+                            $tvgLogo = null;
+                            if (preg_match('/tvg-logo="([^"]+)"/i', $extinf, $logoMatches)) {
+                                $tvgLogo = $logoMatches[1];
+                            }
+                            // Ensure correct season and episode assignment
+                            $episodes[] = [
+                                'title' => $title,
+                                'url' => $line,
+                                'season' => $seasonNum,
+                                'episode' => $episodeNum,
+                                'image' => $tvgLogo
+                            ];
                         }
-                        
-                        $episodes[] = [
-                            'title' => $title,
-                            'url' => $line,
-                            'season' => (int)$matches[2],
-                            'episode' => (int)$matches[3],
-                            'image' => $tvgLogo
-                        ];
-                    }
                 }
                 $title = '';
                 $extinf = '';
@@ -260,7 +262,7 @@ foreach ($seasons as &$seasonEpisodes) {
             
             <div class="series-info flex-grow-1">
                 <h1><?= htmlspecialchars($seriesName) ?></h1>
-                <p class="text-muted mb-3">
+                <p class="mb-3">
                     <?= count($seasons) ?> season<?= count($seasons) > 1 ? 's' : '' ?> • 
                     <?= count($episodes) ?> episode<?= count($episodes) > 1 ? 's' : '' ?>
                 </p>
@@ -271,13 +273,13 @@ foreach ($seasons as &$seasonEpisodes) {
             </div>
         </div>
 
-        <?php if (empty($seasons)): ?>
+        <?php if (empty($seasons)) { ?>
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 No episodes found for this series.
             </div>
-        <?php else: ?>
-            <?php foreach ($seasons as $seasonNum => $seasonEpisodes): ?>
+        <?php } else { ?>
+            <?php foreach ($seasons as $seasonNum => $sEpes): ?>
                 <div class="season-section">
                     <h2 class="season-title">
                         <i class="fas fa-play-circle"></i>
@@ -285,28 +287,30 @@ foreach ($seasons as &$seasonEpisodes) {
                     </h2>
                     
                     <div class="row">
-                        <?php foreach ($seasonEpisodes as $episode): ?>
-                            <div class="col-12 col-md-6 col-lg-4">
-                                <div class="episode-card">
-                                    <div class="episode-number">Episode <?= $episode['episode'] ?></div>
-                                    <div class="episode-title"><?= htmlspecialchars($episode['title']) ?></div>
-                                    <div class="episode-actions">
-                                        <a href="player.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
-                                           target="_blank" class="btn btn-play btn-sm">
-                                            <i class="fas fa-play me-1"></i>Play
-                                        </a>
-                                        <a href="download.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
-                                           target="_blank" class="btn btn-download btn-sm">
-                                            <i class="fas fa-download me-1"></i>Download
-                                        </a>
+                        <?php foreach ($sEpes as $episode): ?>
+                                <?php if ($episode['season'] == $seasonNum ||true): ?>
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="episode-card">
+                                            <div class="episode-number">Episode <?= $episode['episode'] ?></div>
+                                            <div class="episode-title"><?= htmlspecialchars($episode['title']) ?></div>
+                                            <div class="episode-actions">
+                                                <a href="player.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
+                                                   target="_blank" class="btn btn-play btn-sm">
+                                                    <i class="fas fa-play me-1"></i>Play
+                                                </a>
+                                                <a href="download.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
+                                                   target="_blank" class="btn btn-download btn-sm">
+                                                    <i class="fas fa-download me-1"></i>Download
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                <?php endif; ?>
                         <?php endforeach; ?>
                     </div>
                 </div>
             <?php endforeach; ?>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
     <script>
