@@ -6,12 +6,13 @@ if (!isset($_GET['psw']) || $_GET['psw'] !== 'hGxKr297Ab') {
     exit;
 }
 
+
 $url = $_GET['url'] ?? '';
 $title = $_GET['title'] ?? 'Player';
 
 if (!filter_var($url, FILTER_VALIDATE_URL)) {
-    http_response_code(400);
-    exit('Invalid media URL');
+  http_response_code(400);
+  exit('Invalid media URL');
 }
 
 // Get file extension to determine video type
@@ -20,16 +21,30 @@ $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
 // Determine appropriate MIME type
 $videoTypes = [
-    'mp4' => 'video/mp4',
-    'mkv' => 'video/x-matroska',
-    'avi' => 'video/x-msvideo',
-    'webm' => 'video/webm',
-    'ogg' => 'video/ogg',
-    'm3u8' => 'application/x-mpegURL',
-    'ts' => 'video/MP2T'
+  'mp4' => 'video/mp4',
+  'mkv' => 'video/x-matroska',
+  'avi' => 'video/x-msvideo',
+  'webm' => 'video/webm',
+  'ogg' => 'video/ogg',
+  'm3u8' => 'application/x-mpegURL',
+  'ts' => 'video/MP2T'
 ];
 
-$videoType = $videoTypes[$ext] ?? 'video/mp4';
+// If MKV, use stream.php to transcode and stream as MP4
+
+$unsupported = false;
+// List of supported extensions
+$supportedExts = ['mp4', 'webm', 'ogg', 'm3u8', 'ts'];
+if (!in_array($ext, $supportedExts)) {
+  $unsupported = true;
+}
+if ($unsupported) {
+  $streamUrl = '';
+  $videoType = '';
+} else {
+  $streamUrl = $url;
+  $videoType = $videoTypes[$ext] ?? 'video/mp4';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -244,30 +259,46 @@ $videoType = $videoTypes[$ext] ?? 'video/mp4';
   </div>
 
   <div id="player-container">
+      <?php if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+          echo '<div style="background:#222;color:#ffd700;padding:1em;margin-bottom:1em;">';
+          echo '<strong>Debug Info:</strong><br>';
+          echo 'Video URL: ' . htmlspecialchars($url) . '<br>';
+          echo 'Video Type: ' . htmlspecialchars($videoType) . '<br>';
+          echo '</div>';
+      } ?>
     <div class="video-wrapper">
       <div class="loading" id="loading">
         <i class="fas fa-spinner"></i>
         <p>Loading video player...</p>
       </div>
       
-      <video
-        id="my-player"
-        class="video-js vjs-default-skin"
-        controls
-        preload="auto"
-        width="100%"
-        height="600"
-        data-setup='{"responsive": true, "fluid": true}'
-        style="display: none;"
-      >
-        <source src="<?= htmlspecialchars($url) ?>" type="<?= $videoType ?>">
-        <p class="vjs-no-js">
-          To view this video please enable JavaScript, and consider upgrading to a web browser that
-          <a href="https://videojs.com/html5-video-support/" target="_blank">
-            supports HTML5 video
-          </a>.
-        </p>
-      </video>
+      <?php if ($unsupported): ?>
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Unsupported Format</h3>
+          <p>This video format (e.g., MKV) cannot be played in the browser.<br>
+          Please download the file and play it locally.</p>
+        </div>
+      <?php else: ?>
+        <video
+          id="my-player"
+          class="video-js vjs-default-skin"
+          controls
+          preload="auto"
+          width="100%"
+          height="600"
+          data-setup='{"responsive": true, "fluid": true}'
+          style="display: none;"
+        >
+          <source src="<?= htmlspecialchars($streamUrl) ?>" type="<?= $videoType ?>">
+          <p class="vjs-no-js">
+            To view this video please enable JavaScript, and consider upgrading to a web browser that
+            <a href="https://videojs.com/html5-video-support/" target="_blank">
+              supports HTML5 video
+            </a>.
+          </p>
+        </video>
+      <?php endif; ?>
       
       <div class="player-info">
         <div class="player-title"><?= htmlspecialchars($title) ?></div>

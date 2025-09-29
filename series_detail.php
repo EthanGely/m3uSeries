@@ -294,10 +294,16 @@ foreach ($seasons as &$seasonEpisodes) {
                                             <div class="episode-number">Episode <?= $episode['episode'] ?></div>
                                             <div class="episode-title"><?= htmlspecialchars($episode['title']) ?></div>
                                             <div class="episode-actions">
-                                                <a href="player.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
-                                                   target="_blank" class="btn btn-play btn-sm">
-                                                    <i class="fas fa-play me-1"></i>Play
-                                                </a>
+                                                <?php
+                                                    $supportedExts = ['mp4', 'webm', 'ogg', 'm3u8', 'ts'];
+                                                    $epExt = strtolower(pathinfo(parse_url($episode['url'], PHP_URL_PATH), PATHINFO_EXTENSION));
+                                                    if (in_array($epExt, $supportedExts)) {
+                                                ?>
+                                                    <a href="player.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
+                                                       target="_blank" class="btn btn-play btn-sm">
+                                                        <i class="fas fa-play me-1"></i>Play
+                                                    </a>
+                                                <?php } ?>
                                                 <a href="download.php?url=<?= urlencode($episode['url']) ?>&title=<?= urlencode($episode['title']) ?>&psw=<?= urlencode($_SESSION['loggedin']) ?>" 
                                                    target="_blank" class="btn btn-download btn-sm">
                                                     <i class="fas fa-download me-1"></i>Download

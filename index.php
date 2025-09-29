@@ -75,7 +75,7 @@ unset($_GET['psw']);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>m3u Series - Netflix Style</title>
+  <title>Gallus TV - l'iptv que tu payes pas</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -84,14 +84,14 @@ unset($_GET['psw']);
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       background: linear-gradient(135deg, #141414 0%, #1a1a1a 100%);
       color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow-x: hidden;
     }
-    
+
     .sidebar {
       position: fixed;
       left: 0;
@@ -104,29 +104,29 @@ unset($_GET['psw']);
       transition: transform 0.3s ease;
       overflow-y: auto;
     }
-    
+
     .sidebar.collapsed {
       transform: translateX(-280px);
     }
-    
+
     .sidebar-header {
       padding: 1.5rem;
       border-bottom: 1px solid #333;
       background: linear-gradient(135deg, #e50914 0%, #f40612 100%);
       color: white;
     }
-    
+
     .sidebar-header h3 {
       margin: 0;
       font-size: 1.5rem;
       font-weight: bold;
     }
-    
+
     .nav-section {
       padding: 1rem 0;
       border-bottom: 1px solid #333;
     }
-    
+
     .nav-section-title {
       padding: 0.5rem 1.5rem;
       font-size: 0.9rem;
@@ -135,7 +135,7 @@ unset($_GET['psw']);
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-    
+
     .nav-item {
       padding: 0.75rem 1.5rem;
       cursor: pointer;
@@ -144,33 +144,33 @@ unset($_GET['psw']);
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .nav-item:hover {
       background: rgba(229, 9, 20, 0.1);
       color: #e50914;
     }
-    
+
     .nav-item.active {
       background: linear-gradient(90deg, rgba(229, 9, 20, 0.2) 0%, transparent 100%);
       color: #e50914;
       border-right: 3px solid #e50914;
     }
-    
+
     .nav-item i {
       width: 20px;
       text-align: center;
     }
-    
+
     .main-content {
       margin-left: 280px;
       min-height: 100vh;
       transition: margin-left 0.3s ease;
     }
-    
+
     .main-content.expanded {
       margin-left: 0;
     }
-    
+
     .top-bar {
       background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(10px);
@@ -183,14 +183,14 @@ unset($_GET['psw']);
       top: 0;
       z-index: 100;
     }
-    
+
     .search-container {
       flex-grow: 1;
       max-width: 600px;
       margin: 0 2rem;
       position: relative;
     }
-    
+
     .search-input {
       width: 100%;
       padding: 0.75rem 1rem 0.75rem 3rem;
@@ -201,18 +201,18 @@ unset($_GET['psw']);
       font-size: 1rem;
       transition: all 0.3s ease;
     }
-    
+
     .search-input:focus {
       outline: none;
       border-color: #e50914;
       background: rgba(255, 255, 255, 0.15);
       box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
     }
-    
+
     .search-input::placeholder {
       color: #999;
     }
-    
+
     .search-icon {
       position: absolute;
       left: 1rem;
@@ -220,7 +220,7 @@ unset($_GET['psw']);
       transform: translateY(-50%);
       color: #999;
     }
-    
+
     .toggle-sidebar {
       background: rgba(255, 255, 255, 0.1);
       border: none;
@@ -230,30 +230,30 @@ unset($_GET['psw']);
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    
+
     .toggle-sidebar:hover {
       background: rgba(255, 255, 255, 0.2);
     }
-    
+
     .content-area {
       padding: 2rem;
       min-height: calc(100vh - 80px);
     }
-    
+
     .section-title {
       font-size: 1.8rem;
       font-weight: bold;
       margin-bottom: 1.5rem;
       color: #e50914;
     }
-    
+
     .results-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1.5rem;
       margin-top: 2rem;
     }
-    
+
     .item-card {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
@@ -264,13 +264,13 @@ unset($_GET['psw']);
       cursor: pointer;
       position: relative;
     }
-    
+
     .item-card:hover {
       transform: translateY(-10px) scale(1.03);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       border-color: #e50914;
     }
-    
+
     .item-image {
       width: 100%;
       height: 200px;
@@ -280,22 +280,22 @@ unset($_GET['psw']);
       align-items: center;
       justify-content: center;
     }
-    
+
     .item-image img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    
+
     .item-image .placeholder {
       font-size: 3rem;
       color: #666;
     }
-    
+
     .item-content {
       padding: 1.5rem;
     }
-    
+
     .item-type {
       display: inline-block;
       background: linear-gradient(45deg, #e50914, #f40612);
@@ -308,11 +308,11 @@ unset($_GET['psw']);
       letter-spacing: 0.5px;
       margin-bottom: 0.75rem;
     }
-    
+
     .item-type.movie {
       background: linear-gradient(45deg, #1e88e5, #42a5f5);
     }
-    
+
     .item-title {
       font-size: 1.1rem;
       font-weight: 600;
@@ -320,19 +320,19 @@ unset($_GET['psw']);
       color: #ffffff;
       line-height: 1.3;
     }
-    
+
     .item-category {
       color: #999;
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
-    
+
     .item-actions {
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
     }
-    
+
     .btn-action {
       padding: 0.5rem 1rem;
       border-radius: 20px;
@@ -346,39 +346,39 @@ unset($_GET['psw']);
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .btn-play {
       background: linear-gradient(45deg, #28a745, #20c997);
       color: white;
     }
-    
+
     .btn-download {
       background: linear-gradient(45deg, #007bff, #0056b3);
       color: white;
     }
-    
+
     .btn-favorite {
       background: linear-gradient(45deg, #ffc107, #ffeb3b);
       color: #333;
     }
-    
+
     .btn-favorite.is-favorite {
       background: linear-gradient(45deg, #e50914, #f40612);
       color: white;
     }
-    
+
     .btn-action:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       text-decoration: none;
       color: white;
     }
-    
+
     .categories-list {
       max-height: 300px;
       overflow-y: auto;
     }
-    
+
     .category-item {
       display: flex;
       justify-content: between;
@@ -388,17 +388,17 @@ unset($_GET['psw']);
       transition: all 0.3s ease;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     .category-item:hover {
       background: rgba(229, 9, 20, 0.1);
       color: #e50914;
     }
-    
+
     .category-item.active {
       background: linear-gradient(90deg, rgba(229, 9, 20, 0.2) 0%, transparent 100%);
       color: #e50914;
     }
-    
+
     .category-count {
       background: rgba(255, 255, 255, 0.1);
       padding: 0.2rem 0.6rem;
@@ -406,46 +406,46 @@ unset($_GET['psw']);
       font-size: 0.8rem;
       margin-left: auto;
     }
-    
+
     .loading {
       text-align: center;
       padding: 2rem;
       color: #999;
     }
-    
+
     .no-results {
       text-align: center;
       padding: 3rem;
       color: #666;
     }
-    
+
     .no-results i {
       font-size: 4rem;
       margin-bottom: 1rem;
       color: #444;
     }
-    
+
     @media (max-width: 768px) {
       .sidebar {
         transform: translateX(-280px);
       }
-      
+
       .sidebar.open {
         transform: translateX(0);
       }
-      
+
       .main-content {
         margin-left: 0;
       }
-      
+
       .search-container {
         margin: 0 1rem;
       }
-      
+
       .content-area {
         padding: 1rem;
       }
-      
+
       .results-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1rem;
@@ -460,7 +460,7 @@ unset($_GET['psw']);
     <div class="sidebar-header">
       <h3><i class="fas fa-tv me-2"></i>m3u Series</h3>
     </div>
-    
+
     <div class="nav-section">
       <div class="nav-section-title">Navigation</div>
       <div class="nav-item active" data-view="search">
@@ -476,11 +476,11 @@ unset($_GET['psw']);
         Categories
       </div>
     </div>
-    
-    <div class="nav-section" id="categories-section">
-      <div class="nav-section-title">Categories</div>
-      <div class="categories-list" id="categories-list">
-        <div class="loading">Loading categories...</div>
+
+    <div class="nav-section" id="favorites-section">
+      <div class="nav-section-title">Favorites</div>
+      <div class="categories-list" id="favorites-list">
+        <div class="loading">Loading favorites...</div>
       </div>
     </div>
   </div>
@@ -491,17 +491,17 @@ unset($_GET['psw']);
       <button class="toggle-sidebar" onclick="toggleSidebar()">
         <i class="fas fa-bars"></i>
       </button>
-      
+
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
         <input type="text" id="searchInput" class="search-input" placeholder="Search for movies and series...">
       </div>
-      
+
       <div class="d-flex align-items-center gap-3">
         <span class="text-muted">Welcome!</span>
       </div>
     </div>
-    
+
     <div class="content-area">
       <div id="contentTitle" class="section-title">Search Results</div>
       <div id="contentArea">
@@ -520,8 +520,8 @@ unset($_GET['psw']);
       const urlParams = new URLSearchParams(window.location.search);
       urlParams.delete('psw');
       window.history.replaceState({}, document.title, window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : ''));
-      
-      loadCategories();
+
+      loadFavoritesSidebar();
       initializeEventListeners();
     });
 
@@ -532,7 +532,7 @@ unset($_GET['psw']);
     function initializeEventListeners() {
       // Search input
       document.getElementById('searchInput').addEventListener('input', debounceSearch);
-      
+
       // Navigation items
       document.querySelectorAll('.nav-item[data-view]').forEach(item => {
         item.addEventListener('click', function() {
@@ -548,16 +548,16 @@ unset($_GET['psw']);
 
     function switchView(view) {
       currentView = view;
-      
+
       // Update active nav item
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       document.querySelector(`[data-view="${view}"]`).classList.add('active');
-      
+
       // Update content
       const contentTitle = document.getElementById('contentTitle');
       const contentArea = document.getElementById('contentArea');
-      
-      switch(view) {
+
+      switch (view) {
         case 'search':
           contentTitle.textContent = 'Search Results';
           contentArea.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><h3>Start searching</h3><p>Type at least 2 characters to search for movies and series</p></div>';
@@ -573,28 +573,37 @@ unset($_GET['psw']);
       }
     }
 
-    function loadCategories() {
-      fetch('fetch_m3u.php?action=categories')
+    function loadFavoritesSidebar() {
+      fetch('favorites.php?action=list')
         .then(res => res.json())
         .then(data => {
-          categories = data;
-          const categoriesList = document.getElementById('categories-list');
-          categoriesList.innerHTML = '';
-          
-          Object.entries(data).forEach(([category, count]) => {
-            const item = document.createElement('div');
-            item.className = 'category-item';
-            item.innerHTML = `
-              <span>${category}</span>
-              <span class="category-count">${count}</span>
+          const favoritesArray = Object.values(data);
+          const favoritesList = document.getElementById('favorites-list');
+          favoritesList.innerHTML = '';
+          if (favoritesArray.length === 0) {
+            favoritesList.innerHTML = '<div class="no-results"><i class="fas fa-heart"></i><h6>No favorites yet</h6></div>';
+            return;
+          }
+          favoritesArray.forEach(fav => {
+            const item = fav.data;
+            const isMovie = item.type !== 'series';
+            const title = isMovie ? item.title : item.series_name;
+            const image = item.image || 'Noimage.png';
+            const link = isMovie ?
+              `player.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}` :
+              `series_detail.php?series=${encodeURIComponent(item.series_name)}`;
+            const icon = isMovie ? 'fa-play' : 'fa-tv';
+            const card = document.createElement('div');
+            card.className = 'category-item';
+            card.innerHTML = `
+              <a href="${link}" target="_blank" style="color: #FFF; text-decoration: none; width: 100%; display: flex;"><span>${title}</span><span style="margin-left:auto;color:#e50914;"><i class="fas ${icon}"></i></span></a>
             `;
-            item.addEventListener('click', () => loadCategory(category));
-            categoriesList.appendChild(item);
+            favoritesList.appendChild(card);
           });
         })
         .catch(err => {
-          console.error('Error loading categories:', err);
-          document.getElementById('categories-list').innerHTML = '<div class="text-danger p-3">Error loading categories</div>';
+          console.error('Error loading favorites:', err);
+          document.getElementById('favorites-list').innerHTML = '<div class="text-danger p-3">Error loading favorites</div>';
         });
     }
 
@@ -602,11 +611,11 @@ unset($_GET['psw']);
       switchView('category');
       document.getElementById('contentTitle').textContent = category;
       document.getElementById('contentArea').innerHTML = '<div class="loading">Loading...</div>';
-      
+
       // Update active category
       document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
       event.target.closest('.category-item').classList.add('active');
-      
+
       fetch(`fetch_m3u.php?action=category&category=${encodeURIComponent(category)}`)
         .then(res => res.json())
         .then(data => {
@@ -621,18 +630,18 @@ unset($_GET['psw']);
     function debounceSearch() {
       clearTimeout(searchTimer);
       const query = document.getElementById('searchInput').value.trim();
-      
+
       if (currentView !== 'search') {
         switchView('search');
       }
-      
+
       if (query.length < 2) {
         document.getElementById('contentArea').innerHTML = '<div class="no-results"><i class="fas fa-search"></i><h3>Start searching</h3><p>Type at least 2 characters to search for movies and series</p></div>';
         return;
       }
-      
+
       document.getElementById('contentArea').innerHTML = '<div class="loading">Searching...</div>';
-      
+
       searchTimer = setTimeout(() => {
         fetch(`fetch_m3u.php?action=search&q=${encodeURIComponent(query)}`)
           .then(res => res.json())
@@ -652,7 +661,7 @@ unset($_GET['psw']);
 
     function loadFavorites() {
       document.getElementById('contentArea').innerHTML = '<div class="loading">Loading favorites...</div>';
-      
+
       fetch('favorites.php?action=list')
         .then(res => res.json())
         .then(data => {
@@ -684,29 +693,29 @@ unset($_GET['psw']);
           </div>
         </div>
       `).join('');
-      
+
       document.getElementById('contentArea').innerHTML = content ? `<div class="results-grid">${content}</div>` : '<div class="no-results"><i class="fas fa-folder-open"></i><h3>No categories found</h3></div>';
     }
 
     function displayResults(results) {
       const contentArea = document.getElementById('contentArea');
-      
+
       if (!results || results.length === 0) {
         contentArea.innerHTML = '<div class="no-results"><i class="fas fa-film"></i><h3>No results found</h3><p>Try adjusting your search terms</p></div>';
         return;
       }
-      
-        const resultsHTML = results.map(item => createItemCard(item)).join('');
-        contentArea.innerHTML = `<div class="results-grid">${resultsHTML}</div>`;
-        // After rendering, check for missing images and fetch from TMDB
-        results.forEach((item, idx) => {
-          const isMovie = item.type !== 'series';
-          const title = isMovie ? item.title : item.series_name;
-          const imgId = Array.from(document.querySelectorAll('.item-image img'))[idx]?.id;
-          if (!item.image && imgId) {
-            handleImageError(imgId, isMovie ? 'movie' : 'series', title, isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].season : null), isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].episode : null));
-          }
-        });
+
+      const resultsHTML = results.map(item => createItemCard(item)).join('');
+      contentArea.innerHTML = `<div class="results-grid">${resultsHTML}</div>`;
+      // After rendering, check for missing images and fetch from TMDB
+      results.forEach((item, idx) => {
+        const isMovie = item.type !== 'series';
+        const title = isMovie ? item.title : item.series_name;
+        const imgId = Array.from(document.querySelectorAll('.item-image img'))[idx]?.id;
+        if (!item.image && imgId) {
+          handleImageError(imgId, isMovie ? 'movie' : 'series', title, isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].season : null), isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].episode : null));
+        }
+      });
     }
 
     // Called on image error or missing image
@@ -762,16 +771,24 @@ unset($_GET['psw']);
     }
 
     function createItemCard(item) {
-        const isMovie = item.type !== 'series';
-        const title = isMovie ? item.title : item.series_name;
-        const image = item.image || null;
-        let actionsHTML = '';
-        if (isMovie) {
-          actionsHTML = `
-            <a href="player.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
-               target="_blank" class="btn-action btn-play">
-              <i class="fas fa-play"></i>Play
-            </a>
+      const isMovie = item.type !== 'series';
+      const title = isMovie ? item.title : item.series_name;
+      const image = item.image || null;
+      let actionsHTML = '';
+      if (isMovie) {
+        // Check supported extensions
+        const supportedExts = ['mp4', 'webm', 'ogg', 'm3u8', 'ts'];
+        let epExt = '';
+        try {
+          epExt = item.url ? item.url.split('.').pop().split('?')[0].toLowerCase() : '';
+        } catch (e) {}
+        actionsHTML = `
+            ${supportedExts.includes(epExt) ? `
+              <a href="player.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
+                 target="_blank" class="btn-action btn-play">
+                <i class="fas fa-play"></i>Play
+              </a>
+            ` : ''}
             <a href="download.php?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}&psw=${encodeURIComponent("<?= $_SESSION['loggedin'] ?>")}" 
                target="_blank" class="btn-action btn-download">
               <i class="fas fa-download"></i>Download
@@ -780,8 +797,8 @@ unset($_GET['psw']);
               <i class="fas fa-heart"></i>
             </button>
           `;
-        } else {
-          actionsHTML = `
+      } else {
+        actionsHTML = `
             <a href="series_detail.php?series=${encodeURIComponent(item.series_name)}" 
                class="btn-action btn-play">
               <i class="fas fa-tv"></i>View Episodes
@@ -790,10 +807,10 @@ unset($_GET['psw']);
               <i class="fas fa-heart"></i>
             </button>
           `;
-        }
-        // Use a unique id for the image element
-        const imgId = 'img_' + Math.random().toString(36).substr(2, 9);
-        return `
+      }
+      // Use a unique id for the image element
+      const imgId = 'img_' + Math.random().toString(36).substr(2, 9);
+      return `
           <div class="item-card">
             <div class="item-image">
               ${image ? 
@@ -817,7 +834,7 @@ unset($_GET['psw']);
       event.stopPropagation();
       const id = item.type === 'series' ? item.series_name : item.title;
       const isFavorite = button.classList.contains('is-favorite');
-      
+
       if (isFavorite) {
         fetch(`favorites.php?action=remove&id=${encodeURIComponent(id)}`)
           .then(res => res.json())
@@ -829,17 +846,19 @@ unset($_GET['psw']);
           });
       } else {
         fetch('favorites.php?action=add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(item)
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            button.classList.add('is-favorite');
-            button.innerHTML = '<i class="fas fa-heart-broken"></i>';
-          }
-        });
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(item)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              button.classList.add('is-favorite');
+              button.innerHTML = '<i class="fas fa-heart-broken"></i>';
+            }
+          });
       }
     }
   </script>
