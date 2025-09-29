@@ -6,6 +6,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== 'hGxKr297Ab') {
     exit;
 }
 
+// Include TMDB helper functions
+require_once 'includes/tmdb-helper.php';
+
 $seriesName = $_GET['series'] ?? '';
 if (empty($seriesName)) {
     header('Location: index.php');
@@ -76,29 +79,23 @@ foreach ($seasons as &$seasonEpisodes) {
         return $a['episode'] - $b['episode'];
     });
 }
+
+// Try to get TMDB image if no image available
+$seriesImage = null;
+if (!empty($episodes) && empty($episodes[0]['image'])) {
+    $seriesImage = getTmdbSeriesImage($seriesName);
+}
+
+$pageTitle = htmlspecialchars($seriesName) . ' - Episodes';
+include 'includes/head.php';
+include 'includes/common-styles.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($seriesName) ?> - Episodes</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
+<style>
         body {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
-        }
-        
-        .header {
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem 0;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #e50914;
         }
         
         .series-header {
@@ -121,27 +118,6 @@ foreach ($seasons as &$seasonEpisodes) {
             font-weight: bold;
             margin-bottom: 0.5rem;
             color: #ffffff;
-        }
-        
-        .btn-favorite {
-            background: linear-gradient(45deg, #e50914, #f40612);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-favorite:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4);
-            color: white;
-        }
-        
-        .btn-favorite.is-favorite {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
         }
         
         .season-section {
@@ -216,23 +192,6 @@ foreach ($seasons as &$seasonEpisodes) {
             transform: translateY(-2px);
             color: white;
         }
-        
-        .back-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            text-decoration: none;
-            transform: translateY(-2px);
-        }
     </style>
 </head>
 <body>
@@ -252,8 +211,10 @@ foreach ($seasons as &$seasonEpisodes) {
 
     <div class="container">
         <div class="series-header">
-            <?php if (!empty($episodes[0]['image'])): ?>
-                <img src="<?= htmlspecialchars($episodes[0]['image']) ?>" alt="<?= htmlspecialchars($seriesName) ?>" class="series-poster">
+            <?php 
+            $displayImage = $episodes[0]['image'] ?? $seriesImage;
+            if (!empty($displayImage)): ?>
+                <img src="<?= htmlspecialchars($displayImage) ?>" alt="<?= htmlspecialchars($seriesName) ?>" class="series-poster">
             <?php else: ?>
                 <div class="series-poster d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.1);">
                     <i class="fas fa-tv fa-3x text-muted"></i>
@@ -325,7 +286,7 @@ foreach ($seasons as &$seasonEpisodes) {
         const seriesData = {
             type: 'series',
             series_name: seriesName,
-            image: <?= json_encode($episodes[0]['image'] ?? null) ?>,
+            image: <?= json_encode($displayImage ?? null) ?>,
             episodes: <?= json_encode($episodes) ?>
         };
 
@@ -387,6 +348,9 @@ foreach ($seasons as &$seasonEpisodes) {
 
         // Initialize
         checkFavorite();
+        
+        // Add TMDB JavaScript
+        <?= getTmdbJavaScript() ?>
     </script>
 </body>
 </html>
