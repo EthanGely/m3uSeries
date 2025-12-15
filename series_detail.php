@@ -214,7 +214,7 @@ include 'includes/common-styles.php';
             <?php 
             $displayImage = $episodes[0]['image'] ?? $seriesImage;
             if (!empty($displayImage)): ?>
-                <img src="<?= htmlspecialchars($displayImage) ?>" alt="<?= htmlspecialchars($seriesName) ?>" class="series-poster">
+                <img src="<?= htmlspecialchars($displayImage) ?>" alt="<?= htmlspecialchars($seriesName) ?>" class="series-poster" id="serie-image">
             <?php else: ?>
                 <div class="series-poster d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.1);">
                     <i class="fas fa-tv fa-3x text-muted"></i>
@@ -351,6 +351,19 @@ include 'includes/common-styles.php';
         
         // Add TMDB JavaScript
         <?= getTmdbJavaScript() ?>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const img = document.getElementById('serie-image');
+            if (img) {
+                img.onerror = function() {
+                    handleImageError('serie-image', 'series', seriesName);
+                };
+                // If image is already broken before handler is set
+                if (!img.complete || img.naturalWidth === 0) {
+                    handleImageError('serie-image', 'series', seriesName);
+                }
+            }
+        });
     </script>
 </body>
 </html>

@@ -60,13 +60,7 @@ $context = stream_context_create($options);
 
 // Try to get file size first using HEAD request
 $fileSize = 0;
-$headOptions = [
-    "http" => [
-        "method" => "HEAD",
-        "header" => "User-Agent: VLC/3.0.16 LibVLC/3.0.16\r\n"
-    ]
-];
-$headContext = stream_context_create($headOptions);
+$headContext = stream_context_create($options);
 
 // Suppress warnings for the HEAD request
 $headers = @get_headers($url, 1, $headContext);
@@ -92,15 +86,80 @@ if ($stream === false) {
     http_response_code(404);
     exit('Could not load stream.');
 }
+// --- ADDED: logging, timeouts, shutdown handler ---
+$logDir = __DIR__ . '/logs';
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0755, true);
+}
+$logFile = $logDir . '/download_errors.log';
 
-// Stream file in chunks
+@set_time_limit(0);
+@ini_set('default_socket_timeout', 300);
+
+register_shutdown_function(function() use ($logFile, $url) {
+    $err = error_get_last();
+    if ($err) {
+        $msg = sprintf("[%s] SHUTDOWN: %s in %s on line %d. URL=%s\n",
+            date('Y-m-d H:i:s'),
+            $err['message'],
+            $err['file'],
+            $err['line'],
+            $url
+        );
+        @error_log($msg, 3, $logFile);
+    }
+});
+
+// set a read timeout on the remote socket
+@stream_set_timeout($stream, 30);
+
+ob_end_clean();
+$bytes = 0;
 while (!feof($stream)) {
-    echo fread($stream, 8192);
+    $data = @fread($stream, 8192);
+    if ($data === false) {
+        $meta = stream_get_meta_data($stream);
+        $msg = sprintf("[%s] fread() failed. meta=%s URL=%s\n",
+            date('Y-m-d H:i:s'), trim(print_r($meta, true)), $url
+        );
+        @error_log($msg, 3, $logFile);
+        break;
+    }
+    if ($data === '') {
+        // empty read: check for timeout or broken connection
+        $meta = stream_get_meta_data($stream);
+        if (!empty($meta['timed_out'])) {
+            $msg = sprintf("[%s] stream timed out. meta=%s URL=%s\n",
+                date('Y-m-d H:i:s'), trim(print_r($meta, true)), $url
+            );
+            @error_log($msg, 3, $logFile);
+            break;
+        }
+        usleep(100000);
+        continue;
+    }
+
+    echo $data;
+    $bytes += strlen($data);
     flush();
-    
-    // Check if client disconnected
+
     if (connection_aborted()) {
+        $msg = sprintf("[%s] client aborted after %d bytes. URL=%s\n", date('Y-m-d H:i:s'), $bytes, $url);
+        @error_log($msg, 3, $logFile);
+        break;
+    }
+
+    $meta = stream_get_meta_data($stream);
+    if (!empty($meta['timed_out'])) {
+        $msg = sprintf("[%s] stream_get_meta_data timed_out after %d bytes. meta=%s URL=%s\n",
+            date('Y-m-d H:i:s'), $bytes, trim(print_r($meta, true)), $url
+        );
+        @error_log($msg, 3, $logFile);
         break;
     }
 }
+
 fclose($stream);
+
+$msg = sprintf("[%s] download finished/terminated. total_bytes=%d URL=%s\n", date('Y-m-d H:i:s'), $bytes, $url);
+@error_log($msg, 3, $logFile);

@@ -88,6 +88,7 @@ function getTmdbJavaScript() {
     return "
     // TMDB Image Fallback JavaScript
     async function fetchTmdbImage(type, title, season = null, episode = null) {
+    console.log('fetched from tmdb', type, title, season, episode);
         const apiKey = '$apiKey';
         const baseUrl = 'https://api.themoviedb.org/3';
         const imgBase = 'https://image.tmdb.org/t/p/w500';
