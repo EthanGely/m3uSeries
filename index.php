@@ -1,4 +1,8 @@
 <?php
+if(isset($_GET['dev'])){
+phpinfo();
+exit();
+}
 
 include_once 'update_playlist.php';
 // Update the playlist if needed
@@ -10,7 +14,7 @@ session_start();
 $attemts = isset($_SESSION['attempts']) ? $_SESSION['attempts'] : 0;
 
 if ($attemts >= 3) {
-  die('Too many attempts. Please try again later.');
+ // die('Too many attempts. Please try again later.');
 }
 
 if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || $_SESSION['loggedin'] !== 'hGxKr297Ab') {
@@ -33,6 +37,7 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || $_SESSION['logged
           margin: auto;
         }
       </style>
+      <?php include 'mtm-script.php'; ?>
     </head>
 
     <body class="bg-light">
@@ -67,6 +72,7 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || $_SESSION['logged
 $_SESSION['loggedin'] = 'hGxKr297Ab';
 
 unset($_GET['psw']);
+require_once 'includes/tmdb-helper.php';
 ?>
 
 <!DOCTYPE html>
@@ -78,6 +84,7 @@ unset($_GET['psw']);
   <title>Gallus TV - l'iptv que tu payes pas</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <?php include 'mtm-script.php'; ?>
   <style>
     * {
       margin: 0;
@@ -273,7 +280,7 @@ unset($_GET['psw']);
 
     .item-image {
       width: 100%;
-      height: 200px;
+      height: 350px;
       object-fit: cover;
       background: linear-gradient(45deg, #333, #555);
       display: flex;
@@ -515,6 +522,8 @@ unset($_GET['psw']);
   </div>
 
   <script>
+  <?= getTmdbJavaScript() ?>
+
     document.addEventListener('DOMContentLoaded', function() {
       // Clean URL
       const urlParams = new URLSearchParams(window.location.search);
@@ -713,61 +722,9 @@ unset($_GET['psw']);
         const title = isMovie ? item.title : item.series_name;
         const imgId = Array.from(document.querySelectorAll('.item-image img'))[idx]?.id;
         if (!item.image && imgId) {
-          handleImageError(imgId, isMovie ? 'movie' : 'series', title, isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].season : null), isMovie ? null : (item.episodes && item.episodes[0] ? item.episodes[0].episode : null));
+          handleImageError(imgId, isMovie ? 'movie' : 'series', title, null, null);
         }
       });
-    }
-
-    // Called on image error or missing image
-    async function handleImageError(imgId, type, title, season = null, episode = null) {
-      const imgElem = document.getElementById(imgId);
-      if (!imgElem) return;
-      // Try TMDB
-      const tmdbImg = await fetchTmdbImage(type, title, season, episode);
-      if (tmdbImg) {
-        imgElem.src = tmdbImg;
-        imgElem.onerror = function() {
-          imgElem.parentNode.innerHTML = `<div class='placeholder'><i class='fas fa-${type === 'movie' ? 'film' : 'tv'}'></i></div>`;
-        };
-      } else {
-        imgElem.parentNode.innerHTML = `<div class='placeholder'><i class='fas fa-${type === 'movie' ? 'film' : 'tv'}'></i></div>`;
-      }
-    }
-
-    // TMDB async image fetcher
-    async function fetchTmdbImage(type, title, season = null, episode = null) {
-      const apiKey = '61dac66f8f6aecb3498d73f244d18c91'; // <-- Replace with your TMDB API key
-      const baseUrl = 'https://api.themoviedb.org/3';
-      const imgBase = 'https://image.tmdb.org/t/p/w500';
-      let url = '';
-      if (type === 'series') {
-        url = `${baseUrl}/search/tv?api_key=${apiKey}&query=${encodeURIComponent(title)}`;
-        const resp = await fetch(url);
-        const data = await resp.json();
-        if (data.results && data.results.length > 0) {
-          const show = data.results[0];
-          if (season && episode) {
-            const tvId = show.id;
-            const epUrl = `${baseUrl}/tv/${tvId}/season/${season}/episode/${episode}/images?api_key=${apiKey}`;
-            const epResp = await fetch(epUrl);
-            const epData = await epResp.json();
-            if (epData.stills && epData.stills.length > 0) {
-              return imgBase + epData.stills[0].file_path;
-            }
-          }
-          if (show.poster_path) {
-            return imgBase + show.poster_path;
-          }
-        }
-      } else {
-        url = `${baseUrl}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`;
-        const resp = await fetch(url);
-        const data = await resp.json();
-        if (data.results && data.results.length > 0 && data.results[0].poster_path) {
-          return imgBase + data.results[0].poster_path;
-        }
-      }
-      return null;
     }
 
     function createItemCard(item) {
@@ -814,8 +771,8 @@ unset($_GET['psw']);
           <div class="item-card">
             <div class="item-image">
               ${image ? 
-                `<img id="${imgId}" src="${image}" alt="${title}" onerror="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', ${item.episodes && item.episodes[0] ? item.episodes[0].season : 'null'}, ${item.episodes && item.episodes[0] ? item.episodes[0].episode : 'null'}`})">` :
-                `<img id="${imgId}" src="Noimage.png" alt="${title}" onload="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', ${item.episodes && item.episodes[0] ? item.episodes[0].season : 'null'}, ${item.episodes && item.episodes[0] ? item.episodes[0].episode : 'null'}`})">`
+                `<img id="${imgId}" src="${image}" alt="${title}" onerror="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', null, null`})">` :
+                `<img id="${imgId}" src="Noimage.png" alt="${title}" onload="handleImageError('${imgId}', ${isMovie ? `'movie', '${title}'` : `'series', '${item.series_name}', null, null`})">`
               }
             </div>
             <div class="item-content">
